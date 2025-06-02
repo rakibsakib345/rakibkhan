@@ -1,0 +1,2872 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>chat_bangla | Quran Chatbot</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #10b981;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray: #94a3b8;
+      --translation: #7c3aed;
+      --file-color: #f59e0b;
+      --photo-color: #ec4899;
+      --document-color: #14b8a6;
+      --islamic-green: #dbe9e4;
+      --modal-bg: rgba(0, 0, 0, 0.7);
+      --primary-bg: #ffffff;
+      --primary-text: #1e293b;
+      --accent-color: #238C68;
+      --warning-color: #ef4444;
+    }
+    
+    .dark-mode {
+      --primary-bg: #1e293b;
+      --primary-text: #f8fafc;
+      --accent-color: #10b981;
+      --light: #334155;
+      --dark: #f8fafc;
+    }
+    
+    .blue-theme {
+      --accent-color: #2563eb;
+      --islamic-green: #2563eb;
+    }
+    
+    .red-theme {
+      --accent-color: #dc2626;
+      --islamic-green: #dc2626;
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', 'SolaimanLipi', sans-serif;
+      background: var(--primary-bg);
+      color: var(--primary-text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    #chatbox {
+      width: 100%;
+      max-width: 500px;
+      background: var(--primary-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #chat-header {
+      background: var(--accent-color);
+      color: white;
+      padding: 15px 20px;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .mode-switch {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .settings-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    #messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: var(--light);
+      transition: background 0.3s ease;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      line-height: 1.5;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .user {
+      background: var(--accent-color);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 5px;
+    }
+    
+    .bot {
+      background: var(--primary-bg);
+      color: var(--dark);
+      margin-right: auto;
+      border: 1px solid #e2e8f0;
+      border-bottom-left-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .arabic {
+      font-family: 'Traditional Arabic', 'Arial', sans-serif;
+      font-size: 1.2em;
+      line-height: 2;
+      text-align: right;
+      direction: rtl;
+    }
+    
+    .surah-info {
+      background: #f0f7f4;
+      border-left: 4px solid var(--accent-color);
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    
+    #input-area {
+      display: flex;
+      padding: 15px;
+      background: var(--primary-bg);
+      border-top: 1px solid #e2e8f0;
+      gap: 10px;
+    }
+    
+    #userInput {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 25px;
+      outline: none;
+      font-size: 16px;
+      transition: border 0.3s;
+      background: var(--primary-bg);
+      color: var(--primary-text);
+    }
+    
+    #userInput:focus {
+      border-color: var(--accent-color);
+    }
+    
+    #voiceBtn, #sendBtn {
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    #voiceBtn.listening {
+      background: var(--warning-color);
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    
+    #sendBtn:hover, #voiceBtn:hover {
+      opacity: 0.9;
+    }
+    
+    .typing-indicator {
+      display: inline-block;
+      padding: 10px 15px;
+      background: var(--primary-bg);
+      border-radius: 18px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 15px;
+    }
+    
+    .typing-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gray);
+      margin-right: 4px;
+      animation: typing 1.4s infinite both;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+    
+    .timestamp {
+      font-size: 11px;
+      color: var(--gray);
+      margin-top: 5px;
+      text-align: right;
+    }
+    
+    .translation {
+      font-size: 13px;
+      color: var(--translation);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #ddd;
+    }
+    
+    .attachment-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-right: 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .attachment-icon:hover {
+      transform: scale(1.1);
+    }
+    
+    .attachment-icon.photo {
+      background-color: var(--photo-color);
+      color: white;
+    }
+    
+    .attachment-icon.file {
+      background-color: var(--file-color);
+      color: white;
+    }
+    
+    .attachment-icon.document {
+      background-color: var(--document-color);
+      color: white;
+    }
+    
+    .attachment-container {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 15px;
+      background: var(--primary-bg);
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .attachment-item {
+      display: flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .attachment-item:hover {
+      background: #e2e8f0;
+    }
+    
+    .attachment-label {
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .file-message {
+      background-color: #f3f4f6;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .file-icon {
+      margin-right: 10px;
+      font-size: 24px;
+    }
+    
+    .file-info {
+      flex: 1;
+    }
+    
+    .file-name {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    .file-size {
+      font-size: 12px;
+      color: var(--gray);
+    }
+    
+    .download-btn {
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    
+    #fileInput {
+      display: none;
+    }
+    
+    .surah-list {
+      columns: 2;
+      column-gap: 20px;
+    }
+    
+    .surah-item {
+      break-inside: avoid;
+      margin-bottom: 8px;
+    }
+    
+    /* Photo Editor Styles */
+    .photo-editor {
+      margin-top: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--primary-bg);
+    }
+    
+    .editor-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .editor-btn {
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .editor-btn i {
+      font-size: 14px;
+    }
+    
+    .editor-btn:hover {
+      opacity: 0.9;
+    }
+    
+    .slider-container {
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    .slider-container label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    
+    .slider-container input[type="range"] {
+      width: 100%;
+    }
+    
+    .filter-preview {
+      display: flex;
+      gap: 5px;
+      margin-top: 10px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+    
+    .filter-option {
+      width: 60px;
+      height: 60px;
+      border-radius: 5px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .filter-option:hover, .filter-option.active {
+      border-color: var(--accent-color);
+    }
+    
+    .edit-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      display: none;
+    }
+    
+    .image-container {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .image-container:hover .edit-btn {
+      display: block;
+    }
+    
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--modal-bg);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .modal-content {
+      background: var(--primary-bg);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    
+    .modal-header {
+      background: var(--accent-color);
+      color: white;
+      padding: 15px 20px;
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: #f1f5f9;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    
+    .tab-btn.active {
+      background: var(--primary-bg);
+      border-bottom: 2px solid var(--accent-color);
+      color: var(--accent-color);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background: var(--primary-bg);
+      color: var(--primary-text);
+    }
+    
+    .form-group input:focus {
+      border-color: var(--accent-color);
+      outline: none;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-color);
+      color: rgb(40, 129, 123);
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+    
+    .submit-btn:hover {
+      opacity: 0.9;
+    }
+    
+    .form-footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    .form-footer a {
+      color: var(--accent-color);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .user-status {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: var(--accent-color);
+      color: rgb(65, 111, 163);
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      z-index: 10;
+      cursor: pointer;
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--primary-bg);
+      color: var(--dark);
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1001;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .notification.success {
+      border-left: 4px solid var(--accent-color);
+    }
+    
+    .notification.error {
+      border-left: 4px solid var(--warning-color);
+    }
+    
+    .notification i {
+      font-size: 20px;
+    }
+    
+    /* Profile Modal */
+    .profile-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 15px;
+      overflow: hidden;
+      border: 3px solid var(--accent-color);
+    }
+    
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .profile-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .profile-btn {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: var(--primary-bg);
+      color: var(--primary-text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    
+    .profile-btn:hover {
+      background: #f1f5f9;
+    }
+    
+    /* Theme Selector */
+    .theme-selector {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .theme-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    .theme-option:hover {
+      transform: scale(1.1);
+    }
+    
+    .theme-option.selected {
+      border-color: var(--accent-color);
+      transform: scale(1.1);
+    }
+    
+    /* Security Settings */
+    .security-item {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .security-item .btn {
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    /* Warning Modal */
+    .warning-modal {
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .warning-modal i {
+      font-size: 48px;
+      color: var(--warning-color);
+      margin-bottom: 15px;
+    }
+    
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      
+      #chatbox {
+        height: 90vh;
+      }
+      
+      .attachment-item {
+        padding: 5px 8px;
+      }
+      
+      .attachment-label {
+        font-size: 11px;
+      }
+      
+      .surah-list {
+        columns: 1;
+      }
+      
+      .editor-btn {
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+      
+      .modal-content {
+        max-width: 100%;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<div class="user-status" id="userStatus" onclick="showUserProfile()">
+  <i class="fas fa-user"></i> login
+</div>
+
+<div id="chatbox">
+  <div id="chat-header">
+    <span>Quran Chatbot </span>
+    <div class="header-buttons">
+      <button class="mode-switch" id="modeSwitch">
+        <i class="fas fa-exchange-alt"></i> siwtch mode
+      </button>
+      <button class="settings-btn" id="settingsBtn">
+        <i class="fas fa-cog"></i> setings
+      </button>
+    </div>
+  </div>
+  <div id="messages">
+    <div class="message bot">আসসালামু আলাইকুম! আমি কুরআন সম্পর্কিত তথ্য দিতে পারি।<br>আপনি কী জানতে চান?<div class="timestamp">আজ, 12:00 PM</div></div>
+  </div>
+  <div class="attachment-container">
+    <div class="attachment-item" onclick="document.getElementById('fileInput').click()">
+      <div class="attachment-icon photo">
+        <i class="fas fa-camera"></i>
+      </div>
+      <span class="attachment-label">Photo</span> <span class="attachment-label">File</span> <span class="attachment-label">Doc</span>
+    </div>
+    <div class="attachment-item" onclick="document.getElementById('fileInput').click()">
+      <div class="attachment-icon file">
+        <i class="fas fa-file"></i>
+      </div>
+    </div>
+    <div class="attachment-item" onclick="document.getElementById('fileInput').click()">
+      <div class="attachment-icon document">
+        <i class="fas fa-file-pdf"></i>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileUpload(this.files)">
+  <div id="input-area">
+    <input type="text" id="userInput" placeholder="আপনার প্রশ্ন লিখুন..." autocomplete="off">
+    <button id="voiceBtn">
+      <i class="fas fa-microphone"></i>
+    </button>
+    <button id="sendBtn">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Account Modal -->
+<div class="modal" id="accountModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span id="modalTitle">user account</span>
+      <button class="close-modal" id="closeModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="login">loing</button>
+        <button class="tab-btn" data-tab="signup">sing up</button>
+        <button class="tab-btn" data-tab="forgot">password forget</button>
+      </div>
+      
+      <div id="loginTab" class="tab-content active">
+        <div class="form-group">
+          <label for="loginEmail">enter your email</label>
+          <input type="text" id="loginEmail" placeholder="enter your email or username">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">password</label>
+          <input type="password" id="loginPassword" placeholder="enter your password">
+        </div>
+        <button class="submit-btn" id="loginBtn">logi in</button>
+        <div class="form-footer">
+          password forget <a id="showForgot">forger password</a>
+        </div>
+      </div>
+      
+      <div id="signupTab" class="tab-content">
+        <div class="form-group">
+          <label for="signupName">full _name </label>
+          <input type="text" id="signupName" placeholder="enter your full name">
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">email</label>
+          <input type="email" id="signupEmail" placeholder="enter your email">
+        </div>
+        <div class="form-group">
+          <label for="signupUsername">username</label>
+          <input type="text" id="signupUsername" placeholder="enter a unique username">
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">password</label>
+          <input type="password" id="signupPassword" placeholder="enter a strong password">
+        </div>
+        <div class="form-group">
+          <label for="signupConfirm">enter your password</label>
+          <input type="password" id="signupConfirm" placeholder="again enter your password">
+        </div>
+        <button class="submit-btn" id="signupBtn">create a account</button>
+      </div>
+      
+      <div id="forgotTab" class="tab-content">
+        <div class="form-group">
+          <label for="forgotEmail">enter your email</label>
+          <input type="email" id="forgotEmail" placeholder="enter your email to reset password">
+        </div>
+        <button class="submit-btn" id="resetBtn">password reset</button>
+        <div class="form-footer">
+          resetPassword <a id="showLogin">login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Modal (Dynamically created) -->
+
+<!-- Notification -->
+<div class="notification" id="notification">
+  <i class="fas fa-check-circle"></i>
+  <span id="notificationText">account create success!</span>
+</div>
+
+<script>
+  // Chat modes
+  const MODES = {
+    QURAN: 'quran',
+    GENERAL: 'general'
+  };
+  
+  let currentMode = MODES.QURAN;
+  let currentEditingImage = null;
+  let recognition = null;
+  let currentUser = null;
+  
+  // Enhanced knowledge base with categories for both Quran and General
+  const knowledgeBase = {
+    quran: {
+      greetings: {
+        "হ্যালো": "ওয়া আলাইকুম আসসালাম! কুরআন সম্পর্কে কী জানতে চান?",
+        "হাই": "আসসালামু আলাইকুম! আমি কুরআনের সূরাসমূহ সম্পর্কে তথ্য দিতে পারি",
+        "আসসালামু আলাইকুম": "ওয়া আলাইকুম আসসালাম! কুরআন চ্যাটবটে আপনাকে স্বাগতম",
+        "স্বাগতম": "জাযাকাল্লাহু খাইরান! কুরআন সম্পর্কে জানতে কীভাবে সাহায্য করতে পারি?",
+        "সুপ্রভাত": "সুপ্রভাত! কুরআন তিলাওয়াত দিয়ে দিন শুরু করুন",
+        
+        // English greetings
+        "hello": "Assalamu Alaikum! How can I help you with the Quran?",
+        "hi": "Wa Alaikum Salam! I can provide information about Quranic Surahs",
+        "good morning": "Good morning! Start your day with Quran recitation",
+        "good afternoon": "Good afternoon! How can I assist you with the Quran?",
+        "good evening": "Good evening! What Quranic information do you need?"
+      },
+      
+      surahs: {
+        "সূরার তালিকা": `
+        <b>কুরআন মজিদে মোট ১১৪টি সূরা রয়েছে:</b>
+        <div class="surah-list">
+          <div class="surah-item">১. সূরা ফাতিহা</div>
+          <div class="surah-item">২. সূরা বাকারা</div>
+          <div class="surah-item">৩. সূরা আলে ইমরান</div>
+          <div class="surah-item">৪. সূরা নিসা</div>
+          <div class="surah-item">৫. সূরা মায়িদা</div>
+          <div class="surah-item">৬. সূরা আন'আম</div>
+          <div class="surah-item">৭. সূরা আ'রাফ</div>
+          <div class="surah-item">৮. সূরা আনফাল</div>
+          <div class="surah-item">৯. সূরা তাওবা</div>
+          <div class="surah-item">১০. সূরা ইউনুস</div>
+          <div class="surah-item">১১. সূরা হুদ</div>
+          <div class="surah-item">১২. সূরা ইউসুফ</div>
+          <div class="surah-item">১৩. সূরা রা'দ</div>
+          <div class="surah-item">১৪. সূরা ইবরাহীম</div>
+          <div class="surah-item">১৫. সূরা হিজর</div>
+          <div class="surah-item">১৬. সূরা নাহল</div>
+          <div class="surah-item">১৭. সূরা ইসরা</div>
+          <div class="surah-item">১৮. সূরা কাহফ</div>
+          <div class="surah-item">১৯. সূরা মারইয়াম</div>
+          <div class="surah-item">২০. সূরা ত্ব-হা</div>
+          <div class="surah-item">২১. সূরা আম্বিয়া</div>
+          <div class="surah-item">২২. সূরা হাজ্জ</div>
+          <div class="surah-item">২৩. সূরা মু'মিনুন</div>
+          <div class="surah-item">২৪. সূরা নূর</div>
+          <div class="surah-item">২৫. সূরা ফুরকান</div>
+          <div class="surah-item">২৬. সূরা শু'আরা</div>
+          <div class="surah-item">২৭. সূরা নামল</div>
+          <div class="surah-item">২৮. সূরা কাসাস</div>
+          <div class="surah-item">২৯. সূরা আনকাবুট</div>
+          <div class="surah-item">৩০. সূরা রুম</div>
+          <div class="surah-item">৩১. সূরা লুকমান</div>
+          <div class="surah-item">৩২. সূরা সাজদা</div>
+          <div class="surah-item">৩৩. সূরা আহযাব</div>
+          <div class="surah-item">৩৪. সূরা সাবা</div>
+          <div class="surah-item">৩৫. সূরা ফাতির</div>
+          <div class="surah-item">৩৬. সূরা ইয়াসিন</div>
+          <div class="surah-item">৩৭. সূরা সাফফাত</div>
+          <div class="surah-item">৩৮. সূরা সাদ</div>
+          <div class="surah-item">৩৯. সূরা যুমার</div>
+          <div class="surah-item">৪০. সূরা গাফির</div>
+          <div class="surah-item">৪১. সূরা ফুসসিলাত</div>
+          <div class="surah-item">৪২. সূরা শুরা</div>
+          <div class="surah-item">৪৩. সূরা যুখরুফ</div>
+          <div class="surah-item">৪৪. সূরা দুখান</div>
+          <div class="surah-item">৪৫. সূরা জাসিয়া</div>
+          <div class="surah-item">৪৬. সূরা আহকাফ</div>
+          <div class="surah-item">৪৭. সূরা মুহাম্মদ</div>
+          <div class="surah-item">৪৮. সূরা ফাতহ</div>
+          <div class="surah-item">৪৯. সূরা হুজুরাত</div>
+          <div class="surah-item">৫০. সূরা কাফ</div>
+          <div class="surah-item">৫১. সূরা যারিয়াত</div>
+          <div class="surah-item">৫২. সূরা তুর</div>
+          <div class="surah-item">৫৩. সূরা নাজম</div>
+          <div class="surah-item">৫৪. সূরা কামার</div>
+          <div class="surah-item">৫৫. সূরা রাহমান</div>
+          <div class="surah-item">৫৬. সূরা ওয়াকিয়াহ</div>
+          <div class="surah-item">৫৭. সূরা হাদীদ</div>
+          <div class="surah-item">৫৮. সূরা মুজাদিলা</div>
+          <div class="surah-item">৫৯. সূরা হাশর</div>
+          <div class="surah-item">৬০. সূরা মুমতাহিনা</div>
+          <div class="surah-item">৬১. সূরা সাফ</div>
+          <div class="surah-item">৬২. সূরা জুমু'আ</div>
+          <div class="surah-item">৬৩. সূরা মুনাফিকুন</div>
+          <div class="surah-item">৬৪. সূরা তাগাবুন</div>
+          <div class="surah-item">৬৫. সূরা তালাক</div>
+          <div class="surah-item">৬৬. সূরা তাহরীম</div>
+          <div class="surah-item">৬৭. সূরা মুলক</div>
+          <div class="surah-item">৬৮. সূরা কালাম</div>
+          <div class="surah-item">৬৯. সূরা হাক্কা</div>
+          <div class="surah-item">৭০. সূরা মা'আরিজ</div>
+          <div class="surah-item">৭১. সূরা নূহ</div>
+          <div class="surah-item">৭২. সূরা জিন</div>
+          <div class="surah-item">৭৩. সূরা মুজাম্মিল</div>
+          <div class="surah-item">৭৪. সূরা মুদ্দাসসির</div>
+          <div class="surah-item">৭৫. সূরা কিয়ামা</div>
+          <div class="surah-item">৭৬. সূরা ইনসান</div>
+          <div class="surah-item">৭৭. সূরা মুরসালাত</div>
+          <div class="surah-item">৭৮. সূরা নাবা</div>
+          <div class="surah-item">৭৯. সূরা নাযি'আত</div>
+          <div class="surah-item">৮০. সূরা আবাসা</div>
+          <div class="surah-item">৮১. সূরা তাকভীর</div>
+          <div class="surah-item">৮২. সূরা ইনফিতার</div>
+          <div class="surah-item">৮৩. সূরা মুতাফফিফীন</div>
+          <div class="surah-item">৮৪. সূরা ইনশিকাক</div>
+          <div class="surah-item">৮৫. সূরা বুরুজ</div>
+          <div class="surah-item">৮৬. সূরা তারিক</div>
+          <div class="surah-item">৮৭. সূরা আ'লা</div>
+          <div class="surah-item">৮৮. সূরা গাশিয়া</div>
+          <div class="surah-item">৮৯. সূরা ফজর</div>
+          <div class="surah-item">৯০. সূরা বালাদ</div>
+          <div class="surah-item">৯১. সূরা শামস</div>
+          <div class="surah-item">৯২. সূরা লাইল</div>
+          <div class="surah-item">৯৩. সূরা দুহা</div>
+          <div class="surah-item">৯৪. سورة الشرح</div>
+          <div class="surah-item">৯৫. সূরা তীন</div>
+          <div class="surah-item">৯৬. সূরা আলাক</div>
+          <div class="surah-item">৯৭. সূরা কদর</div>
+          <div class="surah-item">৯৮. সূরা বাইয়িনা</div>
+          <div class="surah-item">৯৯. সূরা যিলযাল</div>
+          <div class="surah-item">১০০. সূরা আদিয়াত</div>
+          <div class="surah-item">১০১. সূরা কারি'আ</div>
+          <div class="surah-item">১০২. সূরা তাকাসুর</div>
+          <div class="surah-item">১০৩. সূরা আসর</div>
+          <div class="surah-item">১০৪. সূরা হুমাজা</div>
+          <div class="surah-item">১০৫. সূরা ফীল</div>
+          <div class="surah-item">১০৬. সূরা কুরাইশ</div>
+          <div class="surah-item">১০৭. সূরা মা'উন</div>
+          <div class="surah-item">১০৮. সূরা কাওসার</div>
+          <div class="surah-item">১০৯. সূরা কাফিরুন</div>
+          <div class="surah-item">১১০. সূরা নাসর</div>
+          <div class="surah-item">১১১. সূরা লাহাব</div>
+          <div class="surah-item">১১২. সূরা ইখলাস</div>
+          <div class="surah-item">১১৩. সূরা ফালাক</div>
+          <div class="surah-item">১১৪. সূরা নাস</div>
+        </div>
+        <br>নির্দিষ্ট সূরার তথ্য জানতে সূরার নাম লিখুন, যেমন: "সূরা ইখলাস"`,
+        
+        "সূরা ফাতিহা": `
+        <div class="arabic">
+        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ
+        الرَّحْمَٰنِ الرَّحِيمِ
+        مَالِكِ يَوْمِ الدِّينِ
+        إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ
+        اهْدِنَا الصِّرَاطَ الْمُসْتَقِيمَ
+        صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ
+        </div>
+        
+        <b>বাংলা অনুবাদ:</b>
+        ১. পরম করুণাময় অসীম দয়ালু আল্লাহর নামে শুরু করছি।
+        ২. সকল প্রশংসা আল্লাহর জন্য যিনি সকল সৃষ্টির পালনকর্তা।
+        ৩. তিনি অতি দয়ালু, অসীম দয়াময়।
+        ৪. বিচার দিনের মালিক তিনি।
+        ৫. আমরা কেবল তোমারই ইবাদত করি এবং কেবল তোমারই কাছে সাহায্য চাই।
+        ৬. আমাদেরকে সরল পথ দেখাও।
+        ৭. তাদের পথ যাদেরকে তুমি নেয়ামত দান করেছ, তাদের পথ নয় যাদের উপর তোমার গজব নাজিল হয়েছে এবং যারা পথভ্রষ্ট হয়েছে।
+        
+        <div class="surah-info">
+        <b>সূরা ফাতিহা (الفاتحة)</b><br>
+        ● মাক্কী সূরা<br>
+        ● আয়াত সংখ্যা: ৭<br>
+        ● অন্য নাম: উম্মুল কিতাব, সাবউল মাসানী<br>
+        ● বিশেষত্ব: নামাজের প্রতিটি রাকাতে পড়া বাধ্যতামূলক
+        </div>`,
+        
+        "সূরা ইখলাস": `
+        <div class="arabic">
+        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        قُلْ هُوَ اللَّهُ أَحَدٌ
+        اللَّهُ الصَّمَدُ
+        لَمْ يَلِدْ وَلَمْ يُولَدْ
+        وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ
+        </div>
+        
+        <b>বাংলা অনুবাদ:</b>
+        ১. পরম করুণাময় অসীম দয়ালু আল্লাহর নামে শুরু করছি।
+        ২. বলুন, তিনি আল্লাহ, একক।
+        ৩. আল্লাহ অমুখাপেক্ষী।
+        ৪. তিনি কাউকে জন্ম দেননি এবং কেউ তাকে জন্ম দেয়নি।
+        ৫. এবং তার সমতুল্য কেউ নেই।
+        
+        <div class="surah-info">
+        <b>সূরা ইখলাস (الإخلاص)</b><br>
+        ● মাক্কী সূরা<br>
+        ● আয়াত সংখ্যা: ৪<br>
+        ● অন্য নাম: সূরা তাওহীদ<br>
+        ● বিশেষত্ব: আল্লাহর একত্ববাদের ঘোষণা<br>
+        ● ফজিলত: একবার পড়লে কুরআনের এক তৃতীয়াংশ পড়ার সওয়াব
+        </div>`,
+        
+        "সূরা ইয়াসিন": `
+        <div class="arabic">
+        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        يس
+        وَالْقُرْآنِ الْحَكِيمِ
+        إِنَّكَ لَمِنَ الْمُرْسَلِينَ
+        عَلَىٰ صِرَاطٍ مُسْتَقِيمٍ
+        </div>
+        
+        <b>প্রথম কয়েক আয়াতের বাংলা অনুবাদ:</b>
+        ১. পরম করুণাময় অসীম দয়ালু আল্লাহর নামে শুরু করছি।
+        ২. ইয়া-সীন।
+        ৩. প্রজ্ঞাময় কুরআনের শপথ!
+        ৪. নিশ্চয় আপনি প্রেরিত রাসূলগণের অন্তর্ভুক্ত।
+        ৫. সরল পথের উপর।
+        
+        <div class="surah-info">
+        <b>সূরা ইয়াসিন (يس)</b><br>
+        ● মাক্কী সূরা<br>
+        ● আয়াত সংখ্যা: ৮৩<br>
+        ● অন্য নাম: 'কুরআনের হৃদয়'<br>
+        ● বিশেষত্ব: মৃত্যুর সময় তিলাওয়াতের ফজিলত<br>
+        ● ফজিলত: ১০ বার পড়লে সমস্ত গুনাহ মাফ হয়
+        </div>`,
+        
+        "সূরা বাকারা": `
+        <div class="arabic">
+        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        الم
+        ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ
+        </div>
+        
+        <b>প্রথম কয়েক আয়াতের বাংলা অনুবাদ:</b>
+        ১. পরম করুণাময় অসীম দয়ালু আল্লাহর নামে শুরু করছি।
+        ২. আলিফ-লাম-মীম।
+        ৩. এটা সেই কিতাব যাতে কোন সন্দেহ নেই; মুত্তাকীদের জন্য পথপ্রদর্শক।
+        
+        <div class="surah-info">
+        <b>সূরা বাকারা (البقرة)</b><br>
+        ● মাদানী সূরা<br>
+        ● আয়াত সংখ্যা: ২৮৬ (দীর্ঘতম সূরা)<br>
+        ● নামকরণ: বনি ইসরাইলের গাভী কাহিনী থেকে<br>
+        ● বিশেষত্ব: আয়াতুল কুরসী (২৫৫ নং আয়াত) এতে রয়েছে<br>
+        ● ফজিলত: ঘরে পড়লে শয়তান প্রবেশ করে না
+        </div>`,
+        
+        "সূরা রাহমান": `
+        <div class="arabic">
+        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        الرَّحْمَٰنُ
+        عَلَّمَ الْقُرْآنَ
+        خَلَقَ الْإِنْسَانَ
+        عَلَّمَهُ الْبَيَانَ
+        </div>
+        
+        <b>প্রথম কয়েক আয়াতের বাংলা অনুবাদ:</b>
+        ১. পরম করুণাময় অসীম দয়ালু আল্লাহর নামে শুরু করছি।
+        ২. তিনি পরম করুণাময়,
+        ৩. শিক্ষা দিয়েছেন কুরআন,
+        ৪. সৃষ্টি করেছেন মানুষ,
+        ৫. শিক্ষা দিয়েছেন তাকে ব্যক্ত করতে।
+        
+        <div class="surah-info">
+        <b>সূরা আর-রাহমান (الرحمن)</b><br>
+        ● মাদানী সূরা<br>
+        ● আয়াত সংখ্যা: ৭৮<br>
+        ● বিশেষত্ব: "ফাবি আইয়্যি আলা-ই রব্বিকুমা তুকাজ্জিবান" (অতএব তোমরা উভয়ে তোমাদের প্রভুর কোন অনুগ্রহকে অস্বীকার করবে?) এই বাক্যটি ৩১ বার পুনরাবৃত্তি হয়েছে<br>
+        ● ফজিলত: নিয়মিত তিলাওয়াত করলে আল্লাহর রহমত নাজিল হয়
+        </div>`,
+        
+        "সূরা নাস": `
+        <div class="arabic">
+        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        قُلْ أَعُوذُ بِرَبِّ النَّاسِ
+        مَلِكِ النَّاسِ
+        إِلَٰهِ النَّاسِ
+        مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّাসِ
+        الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ
+        مِنَ الْجِنَّةِ وَالنَّاسِ
+        </div>
+        
+        <b>বাংলা অনুবাদ:</b>
+        ১. পরম করুণাময় অসীম দয়ালু আল্লাহর নামে শুরু করছি।
+        ২. বলুন, আমি আশ্রয় গ্রহণ করছি মানুষের পালনকর্তার,
+        ৩. মানুষের অধিপতির,
+        ৪. মানুষের ইলাহের,
+        ৫. কুমন্ত্রণাদাতার অনিষ্ট থেকে, যে পলায়ন করে,
+        ৬. যে মানুষের অন্তরে কুমন্ত্রণা দেয়,
+        ৭. জিন ও মানুষের মধ্য থেকে।
+        
+        <div class="surah-info">
+        <b>সূরা আন-নাস (الناس)</b><br>
+        ● মাক্কী সূরা<br>
+        ● আয়াত সংখ্যা: ৬<br>
+        ● বিশেষত্ব: কুরআনের সর্বশেষ সূরা<br>
+        ● ফজিলত: ঝাড়-ফুঁক ও হিফাজতের জন্য পড়া হয়
+        </div>`
+      },
+      
+      islam: {
+        "রমজান কবে?": "রমজান মাস চাঁদ দেখার উপর নির্ভর করে। প্রতি বছর তারিখ পরিবর্তন হয়। চলতি বছর রমজান শুরু হতে পারে ${new Date().getFullYear()} সালের ${new Date(new Date().getFullYear(), 2, 22).toLocaleDateString('bn-BD', {month: 'long', day: 'numeric'})} তারিখে (আনুমানিক)।",
+        
+        "নামাজ কয় রাকাত?": `
+        ফরজ নামাজের রাকাত সংখ্যা:
+        - ফজর: ২ রাকাত
+        - জোহর: ৪ রাকাত
+        - আসর: ৪ রাকাত
+        - মাগরিব: ৩ রাকাত
+        - এশা: ৪ রাকাত
+        
+        সুন্নত ও নফল নামাজ আলাদা।`,
+
+        "কুরআন কি?": "কুরআন ইসলাম ধর্মের পবিত্র গ্রন্থ, আল্লাহর বাণী যা হযরত মুহাম্মদ (সা.)-এর উপর ২৩ বছর ধরে নাযিল হয়েছে। এতে ১১৪টি সূরা, ৬,২৩৬টি আয়াত (বিভিন্ন গণনা অনুযায়ী) এবং ৩০ পারা রয়েছে।",
+
+        "জাকাত কাকে দেব?": `
+        জাকাত দেবেন নিম্নলিখিত ৮ শ্রেণীর লোককে:
+        ১. ফকির (অতি দরিদ্র)
+        ২. মিসকিন (দরিদ্র)
+        ৩. জাকাত আদায়কারী কর্মচারী
+        ৪. নতুন মুসলিম
+        ৫. দাসমুক্তির জন্য
+        ৬. ঋণগ্রস্ত
+        ৭. আল্লাহর পথে জিহাদকারী
+        ৮. মুসাফির (যাত্রাকালীন অসহায়)`,
+
+        "ইসলামের স্তম্ভ কয়টি?": `
+        ইসলামের পাঁচটি স্তম্ভ:
+        ১. কালিমা শাহাদাত (ঈমান)
+        ২. নামাজ প্রতিষ্ঠা
+        ৩. রমজান মাসে রোজা রাখা
+        ৪. জাকাত প্রদান
+        ৫. সক্ষম হলে হজ্জ সম্পাদন`,
+
+        "ঈমানের স্তম্ভ কয়টি?": `
+        ঈমানের ছয়টি স্তম্ভ:
+        ১. আল্লাহর উপর ঈমান
+        ২. ফেরেশতাদের উপর ঈমান
+        ৩. আসমানী কিতাবের উপর ঈমান
+        ৪. রাসূলগণের উপর ঈমান
+        ৫. আখিরাতের উপর ঈমান
+        ৬. তাকদীরের ভালো-মন্দের উপর ঈমান`,
+
+        "আয়াতুল কুরসি": `
+        <div class="arabic">
+        اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ
+        </div>
+        
+        <b>বাংলা অর্থ:</b>
+        "আল্লাহ, তিনি ছাড়া কোনো ইলাহ নেই, তিনি চিরঞ্জীব, সবকিছুর ধারক। তন্দ্রা বা নিদ্রা তাকে স্পর্শ করে না। আকাশমণ্ডলী ও পৃথিবীতে যা কিছু আছে সবই তাঁর। কে আছে এমন, যে তাঁর অনুমতি ছাড়া তাঁর কাছে সুপারিশ করবে? তিনি জানেন তাদের সামনে ও পিছনে যা কিছু আছে। আর তাঁর জ্ঞান থেকে তারা কিছুই আয়ত্ত করতে পারে না, কিন্তু যতটুকু তিনি ইচ্ছা করেন। তাঁর সিংহাসন আকাশমণ্ডলী ও পৃথিবী পরিব্যাপ্ত। আর সেগুলোকে ধারণ করা তাঁকে ক্লান্ত করে না। তিনি সর্বোচ্চ, সর্বশ্রেষ্ঠ।"
+        
+        <div class="surah-info">
+        <b>আয়াতুল কুরসি (সূরা বাকারা ২৫৫)</b><br>
+        ● বিশেষত্ব: কুরআনের সর্বশ্রেষ্ঠ আয়াত<br>
+        ● ফজিলত: ঘরে পড়লে শয়তান প্রবেশ করে না<br>
+        ● পড়ার সময়: প্রত্যেক ফরজ নামাজের পর
+        </div>`
+      }
+    },
+    
+    general: {
+      greetings: {
+        // Bengali greetings
+        "হ্যালো": "হ্যালো! আপনি কেমন আছেন?",
+        "হাই": "হাই! আমি আপনার জন্য কী করতে পারি?",
+        "আসসালামু আলাইকুম": "ওয়া আলাইকুম আসসালাম! কেমন আছেন?",
+        "স্বাগতম": "ধন্যবাদ! আমি কীভাবে আপনাকে সাহায্য করতে পারি?",
+        "সুপ্রভাত": "সুপ্রভাত! দিনটি আপনার শুভ হোক।",
+        
+        // English greetings
+        "hello": "Hello! How are you?",
+        "hi": "Hi! How can I help you?",
+        "good morning": "Good morning! Have a nice day.",
+        "good afternoon": "Good afternoon! How can I assist you?",
+        "good evening": "Good evening! What can I do for you?"
+      },
+      general: {
+        // Bengali general
+        "আপনার নাম কী?": "আমার নাম বাংলা চ্যাটবট।",
+        "তুমি কেমন আছো?": "আমি ভালো আছি, ধন্যবাদ জিজ্ঞাসার জন্য!",
+        "তুমি কি করো?": "আমি মানুষের সাথে বাংলা ভাষায় কথা বলি এবং তথ্য প্রদান করি।",
+        "তুমি কে তৈরি করেছ?": "আমাকে একজন ডেভেলপার তৈরি করেছেন মানুষের সাহায্যের জন্য।",
+        "এখন কত বাজে?": () => new Date().toLocaleTimeString("bn-BD", {hour: '2-digit', minute:'2-digit'}),
+        
+        // English general
+        "what is your name?": "My name is Chatbot. I can speak both English and Bengali.",
+        "how are you?": "I'm fine, thank you for asking!",
+        "what do you do?": "I chat with people and provide information in English and Bengali.",
+        "who created you?": "I was created by a developer to help people.",
+        "what time is it?": () => new Date().toLocaleTimeString("en-US", {hour: '2-digit', minute:'2-digit'})
+      },
+      education: {
+        // Bengali education
+        "বাংলাদেশের রাজধানী কী?": "বাংলাদেশের রাজধানী ঢাকা।",
+        "বাংলাদেশের স্বাধীনতা দিবস কবে?": "২৬শে মার্চ, ১৯৭১।",
+        "বাংলাদেশের জাতীয় ফুল কি?": "শাপলা।",
+        "বাংলা বর্ণমালায় কয়টি বর্ণ আছে?": "বাংলা বর্ণমালায় মোট ৫০টি বর্ণ আছে (১১টি স্বরবর্ণ ও ৩৯টি ব্যঞ্জনবর্ণ)।",
+        "রবীন্দ্রনাথ ঠাকুর কে ছিলেন?": "রবীন্দ্রনাথ ঠাকুর বাংলা সাহিত্যের সর্বশ্রেষ্ঠ কবি এবং নোবেল পুরস্কার বিজয়ী প্রথম এশীয়।",
+        
+        // English education
+        "capital of bangladesh": "The capital of Bangladesh is Dhaka.",
+        "independence day of bangladesh": "March 26, 1971 is the Independence Day of Bangladesh.",
+        "national flower of bangladesh": "The national flower of Bangladesh is Water Lily (Shapla).",
+        "how many letters in bengali alphabet": "There are 50 letters in Bengali alphabet (11 vowels and 39 consonants).",
+        "who is rabindranath tagore": "Rabindranath Tagore was a Bengali poet and the first Asian Nobel laureate."
+      },
+      tech: {
+        // Bengali tech
+        "কম্পিউটার স্লো হলে কি করব?": "১. অপ্রয়োজনীয় প্রোগ্রাম বন্ধ করুন\n২. র্যাম পরিষ্কার করুন\n৩. অ্যান্টিভাইরাস চালান\n৪. সিস্টেম ক্লিন করুন",
+        "ইন্টারনেট স্লো হলে কি করব?": "১. রাউটার রিস্টার্ট করুন\n২. Wi-Fi সিগনাল চেক করুন\n৩. ডেটা লিমিট চেক করুন\n৪. ISP-কে কল করুন",
+        
+        // English tech
+        "computer slow what to do": "1. Close unnecessary programs\n2. Clear RAM\n3. Run antivirus\n4. Clean your system",
+        "internet slow solution": "1. Restart your router\n2. Check WiFi signal\n3. Check data limit\n4. Call your ISP"
+      },
+      math: {
+        // Bengali math
+        "গণিত": "আমি গণিতে সাহায্য করতে পারি। আপনি যোগ, বিয়োগ, গুণ, ভাগ, সূচক, লগারিদম, ত্রিকোণমিতি, ফ্যাক্টোরিয়াল, গড়, মধ্যমা ইত্যাদি করতে বলতে পারেন। যেমন:\n- '৫ যোগ ৭ কত?'\n- '২^৩ কত?'\n- 'sin 30° কত?'\n- '৫! কত?'\n- '১০, ২০, ৩০ এর গড় কত?'",
+        "যোগ": (text) => handleMathOperation(text, '+', 'যোগ', 'plus'),
+        "বিয়োগ": (text) => handleMathOperation(text, '-', 'বিয়োগ', 'minus'),
+        "গুণ": (text) => handleMathOperation(text, '*', 'গুণ', 'multiplied by'),
+        "ভাগ": (text) => handleMathOperation(text, '/', 'ভাগ', 'divided by'),
+        
+        // English math
+        "math": "I can help with math. You can ask for addition, subtraction, multiplication, division, exponents, logarithms, trigonometry, factorial, average, median etc.\nExamples:\n- '5 plus 7'\n- '2^3'\n- 'sin 30°'\n- '5!'\n- 'average of 10, 20, 30'",
+        "add": (text) => handleMathOperation(text, '+', 'যোগ', 'plus'),
+        "plus": (text) => handleMathOperation(text, '+', 'যোগ', 'plus'),
+        "subtract": (text) => handleMathOperation(text, '-', 'বিয়োগ', 'minus'),
+        "minus": (text) => handleMathOperation(text, '-', 'বিয়োগ', 'minus'),
+        "multiply": (text) => handleMathOperation(text, '*', 'গুণ', 'multiplied by'),
+        "times": (text) => handleMathOperation(text, '*', 'গুণ', 'multiplied by'),
+        "divide": (text) => handleMathOperation(text, '/', 'ভাগ', 'divided by')
+      },
+      language: {
+        // Language related queries
+        "can you speak english": "Yes, I can speak both English and Bengali.",
+        "তুমি কি বাংলা বলতে পারো?": "হ্যাঁ, আমি বাংলা এবং ইংরেজি উভয় ভাষায় কথা বলতে পারি।",
+        "change to english": "Switched to English. How can I help you?",
+        "ইংরেজি চালু কর": "ইংরেজি চালু করা হয়েছে। আমি আপনাকে কিভাবে সাহায্য করতে পারি?",
+        "change to bengali": "বাংলা চালু করা হয়েছে। আমি আপনাকে কিভাবে সাহায্য করতে পারি?",
+        "বাংলা চালু কর": "বাংলা চালু করা হয়েছে। আমি আপনাকে কিভাবে সাহায্য করতে পারি?"
+      },
+      files: {
+        // File related responses
+        "file": "আপনি একটি ফাইল পাঠিয়েছেন। আমি ফাইল পড়তে পারি না, কিন্তু আপনি এটি ডাউনলোড করতে পারেন।\nYou have sent a file. I can't read files, but you can download it.",
+        "image": "আপনি একটি ছবি পাঠিয়েছেন। আমি ছবি বিশ্লেষণ করতে পারি না, তবে আপনি এটি দেখতে পারেন।\nYou have sent an image. I can't analyze images, but you can view it.",
+        "document": "আপনি একটি ডকুমেন্ট পাঠিয়েছেন। আমি ডকুমেন্ট পড়তে পারি না, তবে আপনি এটি ডাউনলোড করতে পারেন।\nYou have sent a document. I can't read documents, but you can download it."
+      },
+      games: {
+        "game": "আমি নিম্নলিখিত গেমগুলি খেলতে পারি:\n1. সংখ্যা অনুমান (1-100)\n2. পাথর-কাগজ-কাঁচি\n3. গণিত কুইজ\n\nকোন গেম খেলতে চান?",
+        "guess the number": "1 থেকে 100 এর মধ্যে একটি সংখ্যা মনে মনে নির্বাচন করেছি। অনুমান করুন! (প্রতি চেষ্টায় আপনাকে 힌্ট দেব)",
+        "rock paper scissors": "পাথর, কাগজ, নাকি কাঁচি? একটি নির্বাচন করুন!",
+        "math quiz": "আমি একটি সহজ গণিত প্রশ্ন জিজ্ঞাসা করব, আপনি উত্তর দিন!"
+      }
+    }
+  };
+
+  // User Account System
+  function initUserSystem() {
+    // Initialize users if not exists
+    if (!localStorage.getItem('quranChatUsers')) {
+      localStorage.setItem('quranChatUsers', JSON.stringify([]));
+    }
+    
+    // Check if user is logged in
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      updateUserStatus(JSON.parse(currentUser));
+    }
+    
+    // Initialize theme
+    initTheme();
+  }
+  
+  function registerUser(name, email, username, password) {
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    
+    // Check if email or username already exists
+    if (users.some(user => user.email === email)) {
+      showNotification('এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি হয়েছে', 'error');
+      return false;
+    }
+    
+    if (users.some(user => user.username === username)) {
+      showNotification('এই ব্যবহারকারী নামটি ইতিমধ্যে ব্যবহৃত হয়েছে', 'error');
+      return false;
+    }
+    
+    // Create new user
+    const newUser = {
+      id: Date.now(),
+      name,
+      email,
+      username,
+      password, // Note: In real app, hash passwords!
+      createdAt: new Date().toISOString(),
+      chatHistory: [],
+      settings: {
+        theme: 'default',
+        chatBackground: 'default'
+      }
+    };
+    
+    users.push(newUser);
+    localStorage.setItem('quranChatUsers', JSON.stringify(users));
+    
+    // Log the user in
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    updateUserStatus(newUser);
+    
+    showNotification('অ্যাকাউন্ট তৈরি সফল হয়েছে!', 'success');
+    return true;
+  }
+  
+  function loginUser(identifier, password) {
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    const user = users.find(u => 
+      (u.email === identifier || u.username === identifier) && 
+      u.password === password
+    );
+    
+    if (user) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      updateUserStatus(user);
+      loadChatHistory();
+      applyUserSettings(user.settings);
+      showNotification('লগইন সফল হয়েছে!', 'success');
+      return true;
+    } else {
+      showNotification('ভুল ইমেইল/ব্যবহারকারী নাম বা পাসওয়ার্ড', 'error');
+      return false;
+    }
+  }
+  
+  function resetPassword(email) {
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    const user = users.find(u => u.email === email);
+    
+    if (user) {
+      // Generate reset code
+      const resetCode = Math.floor(100000 + Math.random() * 900000);
+      const expiry = Date.now() + 15*60*1000; // 15 minutes expiry
+      
+      // Store reset data (in real app, send email)
+      localStorage.setItem('resetData', JSON.stringify({
+        email,
+        code: resetCode,
+        expiry
+      }));
+      
+      // Show code input modal
+      showResetCodeModal(email);
+      
+      showNotification('পাসওয়ার্ড রিসেট কোড আপনার ইমেইলে পাঠানো হয়েছে', 'success');
+      return true;
+    } else {
+      showNotification('এই ইমেইলের সাথে কোন অ্যাকাউন্ট পাওয়া যায়নি', 'error');
+      return false;
+    }
+  }
+  
+  function showResetCodeModal(email) {
+    const modalContent = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>পাসওয়ার্ড রিসেট</span>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="resetCode">৬-অঙ্কের কোড লিখুন</label>
+            <input type="text" id="resetCode" placeholder="আপনার ইমেইলে প্রাপ্ত কোড" maxlength="6">
+          </div>
+          <div class="form-group">
+            <label for="newPassword">নতুন পাসওয়ার্ড</label>
+            <input type="password" id="newPassword" placeholder="নতুন পাসওয়ার্ড">
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword">পাসওয়ার্ড নিশ্চিত করুন</label>
+            <input type="password" id="confirmNewPassword" placeholder="পাসওয়ার্ড আবার লিখুন">
+          </div>
+          <button class="submit-btn" id="confirmResetBtn">পাসওয়ার্ড পরিবর্তন করুন</button>
+          <div class="form-footer">
+            কোড পাননি? <a onclick="resendResetCode('${email}')">আবার পাঠান</a>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'resetCodeModal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    // Add close event
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      modal.remove();
+    });
+    
+    // Add confirm event
+    document.getElementById('confirmResetBtn').addEventListener('click', () => {
+      const code = document.getElementById('resetCode').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmNewPassword').value;
+      
+      if (!code || !newPassword || !confirmPassword) {
+        showNotification('সকল তথ্য প্রদান করুন', 'error');
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        showNotification('পাসওয়ার্ড মিলছে না', 'error');
+        return;
+      }
+      
+      verifyResetCode(email, code, newPassword);
+    });
+  }
+  
+  function resendResetCode(email) {
+    const resetCode = Math.floor(100000 + Math.random() * 900000);
+    const expiry = Date.now() + 15*60*1000;
+    
+    localStorage.setItem('resetData', JSON.stringify({
+      email,
+      code: resetCode,
+      expiry
+    }));
+    
+    showNotification('নতুন কোড পাঠানো হয়েছে', 'success');
+  }
+  
+  function verifyResetCode(email, code, newPassword) {
+    const resetData = JSON.parse(localStorage.getItem('resetData'));
+    if (!resetData) {
+      showNotification('কোন রিসেট রিকোয়েস্ট পাওয়া যায়নি', 'error');
+      return false;
+    }
+    
+    if (resetData.email !== email || 
+        resetData.code !== parseInt(code) || 
+        Date.now() > resetData.expiry) {
+      showNotification('ভুল বা মেয়াদোত্তীর্ণ কোড', 'error');
+      return false;
+    }
+    
+    // Update password
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    const userIndex = users.findIndex(u => u.email === email);
+    
+    if (userIndex !== -1) {
+      users[userIndex].password = newPassword;
+      localStorage.setItem('quranChatUsers', JSON.stringify(users));
+      
+      // Remove reset data
+      localStorage.removeItem('resetData');
+      
+      // Close modal
+      document.getElementById('resetCodeModal').remove();
+      
+      showNotification('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে', 'success');
+      switchTab('login');
+      return true;
+    }
+    
+    showNotification('ব্যবহারকারী খুঁজে পাওয়া যায়নি', 'error');
+    return false;
+  }
+  
+  function logoutUser() {
+    saveChatHistory();
+    localStorage.removeItem('currentUser');
+    updateUserStatus(null);
+    showNotification('আপনি সফলভাবে লগআউট করেছেন', 'success');
+    // Reset to default theme
+    changeTheme('default');
+  }
+  
+  function updateUserStatus(user) {
+    const userStatus = document.getElementById('userStatus');
+    currentUser = user;
+    
+    if (user) {
+      userStatus.innerHTML = `<i class="fas fa-user"></i> ${user.name} <button onclick="logoutUser()" style="background:none;border:none;color:white;margin-left:5px;"><i class="fas fa-sign-out-alt"></i></button>`;
+    } else {
+      userStatus.innerHTML = '<i class="fas fa-user"></i> লগইন করুন';
+    }
+  }
+  
+  function saveChatHistory() {
+    if (!currentUser) return;
+    
+    const messagesDiv = document.getElementById('messages');
+    const messages = Array.from(messagesDiv.children).map(el => {
+      return {
+        html: el.innerHTML,
+        className: el.className
+      };
+    });
+    
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    const userIndex = users.findIndex(u => u.id === currentUser.id);
+    
+    if (userIndex !== -1) {
+      users[userIndex].chatHistory = messages;
+      localStorage.setItem('quranChatUsers', JSON.stringify(users));
+      localStorage.setItem('currentUser', JSON.stringify(users[userIndex]));
+    }
+  }
+  
+  function loadChatHistory() {
+    if (!currentUser) return;
+    
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = '';
+    
+    if (currentUser.chatHistory && currentUser.chatHistory.length > 0) {
+      currentUser.chatHistory.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = msg.className;
+        div.innerHTML = msg.html;
+        messagesDiv.appendChild(div);
+      });
+    } else {
+      // Add default welcome message if no history
+      addMessage('bot', 'আসসালামু আলাইকুম! আমি কুরআন সম্পর্কিত তথ্য দিতে পারি।<br>আপনি কী জানতে চান?');
+    }
+    
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+  
+  function applyUserSettings(settings) {
+    if (settings.theme) {
+      changeTheme(settings.theme);
+    }
+    
+    if (settings.chatBackground) {
+      setChatTheme(settings.chatBackground);
+    }
+  }
+  
+  function updateUserSettings(settings) {
+    if (!currentUser) return;
+    
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    const userIndex = users.findIndex(u => u.id === currentUser.id);
+    
+    if (userIndex !== -1) {
+      users[userIndex].settings = settings;
+      localStorage.setItem('quranChatUsers', JSON.stringify(users));
+      localStorage.setItem('currentUser', JSON.stringify(users[userIndex]));
+      currentUser = users[userIndex];
+    }
+  }
+  
+  function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    const text = document.getElementById('notificationText');
+    
+    text.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
+  }
+  
+  // Voice Recognition
+  function initVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'bn-BD';
+      
+      recognition.onstart = function() {
+        document.getElementById('voiceBtn').classList.add('listening');
+      };
+      
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('userInput').value = transcript;
+        document.getElementById('voiceBtn').classList.remove('listening');
+        sendMessage(); // Auto-send after voice input
+      };
+      
+      recognition.onerror = function(event) {
+        console.error('Voice recognition error', event.error);
+        document.getElementById('voiceBtn').classList.remove('listening');
+        showNotification('ভয়েস ইনপুট ব্যর্থ: ' + event.error, 'error');
+      };
+      
+      recognition.onend = function() {
+        document.getElementById('voiceBtn').classList.remove('listening');
+      };
+    } else {
+      // Hide voice button if not supported
+      document.getElementById('voiceBtn').style.display = 'none';
+    }
+  }
+  
+  function startVoiceRecognition() {
+    if (!recognition) {
+      showNotification('আপনার ব্রাউজার ভয়েস রিকগনিশন সমর্থন করে না', 'error');
+      return;
+    }
+    
+    // Set language based on current mode
+    recognition.lang = currentMode === MODES.QURAN ? 'bn-BD' : 'en-US';
+    recognition.start();
+  }
+  
+  // Theme Functions
+  function initTheme() {
+    const savedTheme = localStorage.getItem('chatTheme') || 'default';
+    changeTheme(savedTheme);
+  }
+  
+  function changeTheme(themeName) {
+    document.body.className = themeName;
+    localStorage.setItem('chatTheme', themeName);
+    
+    // Update user settings if logged in
+    if (currentUser) {
+      const settings = {...currentUser.settings, theme: themeName};
+      updateUserSettings(settings);
+    }
+  }
+  
+  function setChatTheme(theme) {
+    const messagesDiv = document.getElementById('messages');
+    
+    // Reset all theme classes
+    messagesDiv.classList.remove('default-theme', 'sky-theme', 'quran-theme');
+    
+    // Apply selected theme
+    if (theme !== 'default') {
+      messagesDiv.classList.add(`${theme}-theme`);
+    }
+    
+    // Update user settings if logged in
+    if (currentUser) {
+      const settings = {...currentUser.settings, chatBackground: theme};
+      updateUserSettings(settings);
+    }
+  }
+  
+  // Modal Functions
+  function openModal() {
+    document.getElementById('accountModal').style.display = 'flex';
+  }
+  
+  function closeModal() {
+    document.getElementById('accountModal').style.display = 'none';
+  }
+  
+  function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.tab === tabName) {
+        btn.classList.add('active');
+      }
+    });
+  }
+  
+  function showUserProfile() {
+    if (!currentUser) return openModal();
+    
+    const modalContent = `
+      <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+          <span>User Profile</span>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="profile-section">
+            <div class="profile-avatar">
+              <img src="https://ui-avatars.com/api/?name=${currentUser.name}&background=${encodeURIComponent(getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim())}&color=fff" alt="Avatar">
+            </div>
+            <h3>${currentUser.name}</h3>
+            <p>@${currentUser.username}</p>
+            <p>${currentUser.email}</p>
+          </div>
+          
+          <div class="profile-actions">
+            <button class="profile-btn" onclick="showEditProfile()">
+              <i class="fas fa-user-edit"></i> Edit Profile
+            </button>
+            <button class="profile-btn" onclick="showSecuritySettings()">
+              <i class="fas fa-shield-alt"></i> Security
+            </button>
+            <button class="profile-btn" onclick="showThemeSettings()">
+              <i class="fas fa-palette"></i> Themes
+            </button>
+            <button class="profile-btn" onclick="logoutUser()" style="color: var(--warning-color);">
+              <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'profileModal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      modal.remove();
+    });
+  }
+  
+  function showEditProfile() {
+    if (!currentUser) return;
+    
+    const modalContent = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>Edit Profile</span>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="editName">Full Name</label>
+            <input type="text" id="editName" value="${currentUser.name}">
+          </div>
+          <div class="form-group">
+            <label for="editUsername">Username</label>
+            <input type="text" id="editUsername" value="${currentUser.username}">
+          </div>
+          <div class="form-group">
+            <label for="editEmail">Email</label>
+            <input type="email" id="editEmail" value="${currentUser.email}">
+          </div>
+          <button class="submit-btn" onclick="saveProfileChanges()">Save Changes</button>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      modal.remove();
+      showUserProfile();
+    });
+  }
+  
+  function saveProfileChanges() {
+    const name = document.getElementById('editName').value;
+    const username = document.getElementById('editUsername').value;
+    const email = document.getElementById('editEmail').value;
+    
+    if (!name || !username || !email) {
+      showNotification('Please fill all fields', 'error');
+      return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    const userIndex = users.findIndex(u => u.id === currentUser.id);
+    
+    if (userIndex !== -1) {
+      // Check if username or email already exists (except current user)
+      if (users.some((u, i) => i !== userIndex && u.username === username)) {
+        showNotification('Username already taken', 'error');
+        return;
+      }
+      
+      if (users.some((u, i) => i !== userIndex && u.email === email)) {
+        showNotification('Email already in use', 'error');
+        return;
+      }
+      
+      users[userIndex].name = name;
+      users[userIndex].username = username;
+      users[userIndex].email = email;
+      
+      localStorage.setItem('quranChatUsers', JSON.stringify(users));
+      localStorage.setItem('currentUser', JSON.stringify(users[userIndex]));
+      currentUser = users[userIndex];
+      
+      updateUserStatus(currentUser);
+      showNotification('Profile updated successfully', 'success');
+      
+      // Close all modals and reopen profile
+      document.querySelectorAll('.modal').forEach(m => m.remove());
+      showUserProfile();
+    }
+  }
+  
+  function showSecuritySettings() {
+    if (!currentUser) return;
+    
+    const modalContent = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>Security Settings</span>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="security-item">
+            <div>
+              <strong>Change Password</strong>
+              <p>Update your account password</p>
+            </div>
+            <button class="btn" style="background: var(--accent-color); color: white;" onclick="showChangePassword()">Change</button>
+          </div>
+          <div class="security-item">
+            <div>
+              <strong>Login Activity</strong>
+              <p>View your account login history</p>
+            </div>
+            <button class="btn" style="border: 1px solid var(--accent-color); color: var(--accent-color);" onclick="showLoginActivity()">View</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      modal.remove();
+      showUserProfile();
+    });
+  }
+  
+  function showChangePassword() {
+    if (!currentUser) return;
+    
+    const modalContent = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>Change Password</span>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" id="currentPassword" placeholder="Enter current password">
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" placeholder="Enter new password">
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword">Confirm New Password</label>
+            <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+          </div>
+          <button class="submit-btn" onclick="updatePassword()">Update Password</button>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      modal.remove();
+      showSecuritySettings();
+    });
+  }
+  
+  function updatePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmNewPassword').value;
+    
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showNotification('Please fill all fields', 'error');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      showNotification('New passwords do not match', 'error');
+      return;
+    }
+    
+    if (currentUser.password !== currentPassword) {
+      showNotification('Current password is incorrect', 'error');
+      return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('quranChatUsers'));
+    const userIndex = users.findIndex(u => u.id === currentUser.id);
+    
+    if (userIndex !== -1) {
+      users[userIndex].password = newPassword;
+      localStorage.setItem('quranChatUsers', JSON.stringify(users));
+      localStorage.setItem('currentUser', JSON.stringify(users[userIndex]));
+      currentUser = users[userIndex];
+      
+      showNotification('Password updated successfully', 'success');
+      
+      // Close all modals
+      document.querySelectorAll('.modal').forEach(m => m.remove());
+    }
+  }
+  
+  function showLoginActivity() {
+    if (!currentUser) return;
+    
+    // In a real app, you would have actual login history data
+    const loginHistory = [
+      { date: new Date().toLocaleString(), device: 'Chrome on Windows', location: 'Dhaka, BD' },
+      { date: new Date(Date.now() - 86400000).toLocaleString(), device: 'Mobile Safari', location: 'Chittagong, BD' }
+    ];
+    
+    const historyItems = loginHistory.map(item => `
+      <div class="security-item">
+        <div>
+          <strong>${item.device}</strong>
+          <p>${item.date}<br>${item.location}</p>
+        </div>
+      </div>
+    `).join('');
+    
+    const modalContent = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>Login Activity</span>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          ${historyItems}
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      modal.remove();
+      showSecuritySettings();
+    });
+  }
+  
+  function showThemeSettings() {
+    if (!currentUser) return;
+    
+    const modalContent = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>Themes</span>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <h4>App Theme</h4>
+          <div class="theme-selector">
+            <div class="theme-option ${currentUser.settings.theme === 'default' ? 'selected' : ''}" 
+                 style="background: #238C68;" onclick="changeTheme('default')"></div>
+            <div class="theme-option ${currentUser.settings.theme === 'dark-mode' ? 'selected' : ''}" 
+                 style="background: #1e293b;" onclick="changeTheme('dark-mode')"></div>
+            <div class="theme-option ${currentUser.settings.theme === 'blue-theme' ? 'selected' : ''}" 
+                 style="background: #2563eb;" onclick="changeTheme('blue-theme')"></div>
+            <div class="theme-option ${currentUser.settings.theme === 'red-theme' ? 'selected' : ''}" 
+                 style="background: #dc2626;" onclick="changeTheme('red-theme')"></div>
+          </div>
+          
+          <h4 style="margin-top: 20px;">Chat Background</h4>
+          <div class="theme-selector">
+            <div class="theme-option ${currentUser.settings.chatBackground === 'default' ? 'selected' : ''}" 
+                 style="background: #f8fafc; border: 1px solid #ddd;" onclick="setChatTheme('default')"></div>
+            <div class="theme-option ${currentUser.settings.chatBackground === 'sky' ? 'selected' : ''}" 
+                 style="background: linear-gradient(to bottom, #87CEEB, #E0F7FA);" onclick="setChatTheme('sky')"></div>
+            <div class="theme-option ${currentUser.settings.chatBackground === 'quran' ? 'selected' : ''}" 
+                 style="background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url('https://images.unsplash.com/photo-1519817650390-64a93db51149?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'); background-size: cover;" onclick="setChatTheme('quran')"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      modal.remove();
+      showUserProfile();
+    });
+  }
+  
+  // Content Filter System
+  const blockedTerms = ['porn', 'xxx', 'adult', 'sex', 'নিষিদ্ধ', 'অশ্লীল', '18+', 'পর্ণ'];
+  
+  function checkContent(message) {
+    const lowerMsg = message.toLowerCase();
+    if (blockedTerms.some(term => lowerMsg.includes(term))) {
+      showWarningModal();
+      return false;
+    }
+    return true;
+  }
+  
+  function showWarningModal() {
+    const modalContent = `
+      <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header" style="background-color: var(--warning-color);">
+          <span>Warning!</span>
+        </div>
+        <div class="modal-body warning-modal">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Inappropriate Content Detected</h3>
+          <p>This content violates our community guidelines.</p>
+        </div>
+      </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    setTimeout(() => {
+      modal.remove();
+    }, 3000);
+  }
+  
+  // Math operation handler (updated for bilingual support)
+  function handleMathOperation(text, operator, bnOperator, enOperator) {
+    const numbers = extractNumbers(text);
+    if (numbers.length < 2) return "দুইটি সংখ্যা দিয়ে আবার চেষ্টা করুন।\nPlease provide two numbers.";
+    
+    const [a, b] = numbers;
+    let result;
+    
+    switch(operator) {
+      case '+':
+        result = a + b;
+        break;
+      case '-':
+        result = a - b;
+        break;
+      case '*':
+        result = a * b;
+        break;
+      case '/':
+        if (b === 0) return "শূন্য দিয়ে ভাগ করা যায় না!\nCannot divide by zero!";
+        result = a / b;
+        break;
+      default:
+        return "অজানা গাণিতিক অপারেশন\nUnknown math operation";
+    }
+    
+    // Return bilingual response
+    return `${a} ${operator} ${b} = ${result}\n(${a} ${bnOperator} ${b} সমান ${result})\n\n${a} ${enOperator} ${b} equals ${result}`;
+  }
+
+  // Extract numbers from text (works for both languages)
+  function extractNumbers(text) {
+    // Match numbers in Bengali and English format
+    const matches = text.match(/(\d+\.?\d*|\d*\.?\d+)/g) || [];
+    return matches.map(Number);
+  }
+
+  // Get current time in Bengali and English format
+  function getCurrentTime() {
+    const bnTime = new Date().toLocaleTimeString("bn-BD", {hour: '2-digit', minute:'2-digit'});
+    const enTime = new Date().toLocaleTimeString("en-US", {hour: '2-digit', minute:'2-digit'});
+    return `${bnTime} | ${enTime}`;
+  }
+
+  // Get current date in Bengali and English format
+  function getCurrentDate() {
+    const bnOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const enOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const bnDate = new Date().toLocaleDateString("bn-BD", bnOptions);
+    const enDate = new Date().toLocaleDateString("en-US", enOptions);
+    return `${bnDate}\n${enDate}`;
+  }
+
+  // Add typing indicator
+  function showTyping() {
+    const messagesDiv = document.getElementById("messages");
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "typing-indicator";
+    typingDiv.id = "typing";
+    typingDiv.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+    messagesDiv.appendChild(typingDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  // Remove typing indicator
+  function hideTyping() {
+    const typing = document.getElementById("typing");
+    if (typing) typing.remove();
+  }
+
+  // Add message to chat
+  function addMessage(sender, text, isFile = false, fileData = null) {
+    const messagesDiv = document.getElementById("messages");
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "message " + sender;
+    
+    let content = '';
+    
+    if (isFile && fileData) {
+      // Handle file messages
+      if (fileData.type.startsWith('image/')) {
+        // Image file
+        content = `
+          <div class="file-message">
+            <div class="file-icon" style="color: var(--photo-color);">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="file-info">
+              <div class="file-name">${fileData.name}</div>
+              <div class="file-size">${formatFileSize(fileData.size)}</div>
+            </div>
+          </div>
+          <div class="image-container">
+            <img src="${fileData.url}" class="image-preview" alt="Uploaded image" id="uploaded-image-${Date.now()}">
+            <button class="edit-btn" onclick="openPhotoEditor('uploaded-image-${Date.now()}')">
+              <i class="fas fa-edit"></i> এডিট
+            </button>
+          </div>
+        `;
+      } else if (fileData.type === 'application/pdf') {
+        // PDF document
+        content = `
+          <div class="file-message">
+            <div class="file-icon" style="color: var(--document-color);">
+              <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="file-info">
+              <div class="file-name">${fileData.name}</div>
+              <div class="file-size">${formatFileSize(fileData.size)}</div>
+            </div>
+            <button class="download-btn" onclick="downloadFile('${fileData.url}', '${fileData.name}')">
+              <i class="fas fa-download"></i> ডাউনলোড | Download
+            </button>
+          </div>
+        `;
+      } else {
+        // Other files
+        content = `
+          <div class="file-message">
+            <div class="file-icon" style="color: var(--file-color);">
+              <i class="fas fa-file"></i>
+            </div>
+            <div class="file-info">
+              <div class="file-name">${fileData.name}</div>
+              <div class="file-size">${formatFileSize(fileData.size)}</div>
+            </div>
+            <button class="download-btn" onclick="downloadFile('${fileData.url}', '${fileData.name}')">
+              <i class="fas fa-download"></i> ডাউনলোড | Download
+            </button>
+          </div>
+        `;
+      }
+    } else {
+      // Regular text message
+      // Format text with line breaks
+      let formattedText = text.replace(/\n/g, '<br>');
+      
+      // Add translation for Bangla messages
+      if (sender === 'user' && isBangla(text)) {
+        const translation = translateBanglaToEnglish(text);
+        if (translation !== text) {
+          formattedText += `<div class="translation">Translation: ${translation}</div>`;
+        }
+      }
+      
+      content = formattedText;
+    }
+    
+    msgDiv.innerHTML = content;
+    
+    // Add timestamp
+    const timeDiv = document.createElement("div");
+    timeDiv.className = "timestamp";
+    timeDiv.textContent = getCurrentTime();
+    msgDiv.appendChild(timeDiv);
+    
+    messagesDiv.appendChild(msgDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    // Save to history
+    saveChatHistory();
+  }
+
+  // Open photo editor
+  function openPhotoEditor(imageId) {
+    const imgElement = document.getElementById(imageId);
+    if (!imgElement) return;
+    
+    currentEditingImage = imgElement;
+    const imageUrl = imgElement.src;
+    
+    // Create editor container
+    const editorDiv = document.createElement('div');
+    editorDiv.className = 'photo-editor';
+    editorDiv.innerHTML = `
+      <h4>photo edit | Edit Photo</h4>
+      <div class="editor-controls">
+        <button class="editor-btn" onclick="applyFilter('none')"><i class="fas fa-sliders-h"></i> রিসেট | Reset</button>
+        <button class="editor-btn" onclick="applyFilter('grayscale(100%)')"><i class="fas fa-moon"></i> গ্রেস্কেল | Grayscale</button>
+        <button class="editor-btn" onclick="applyFilter('sepia(100%)')"><i class="fas fa-image"></i> সেপিয়া | Sepia</button>
+        <button class="editor-btn" onclick="applyFilter('brightness(1.5)')"><i class="fas fa-sun"></i> উজ্জ্বল | Brighten</button>
+        <button class="editor-btn" onclick="applyFilter('contrast(1.5)')"><i class="fas fa-adjust"></i> কন্ট্রাস্ট | Contrast</button>
+        <button class="editor-btn" onclick="applyFilter('saturate(2)')"><i class="fas fa-paint-brush"></i> স্যাচুরেশন | Saturate</button>
+        <button class="editor-btn" onclick="applyFilter('hue-rotate(90deg)')"><i class="fas fa-palette"></i> হিউ | Hue</button>
+        <button class="editor-btn" onclick="applyFilter('blur(2px)')"><i class="fas fa-cloud"></i> ব্লার | Blur</button>
+        <button class="editor-btn" onclick="applyFilter('invert(100%)')"><i class="fas fa-random"></i> ইনভার্ট | Invert</button>
+      </div>
+      <div class="slider-container">
+        <label for="brightness-slider"> Brightness| Brightness</label>
+        <input type="range" id="brightness-slider" min="0" max="200" value="100" oninput="adjustBrightness(this.value)">
+      </div>
+      <div class="slider-container">
+        <label for="contrast-slider">contrast | Contrast</label>
+        <input type="range" id="contrast-slider" min="0" max="200" value="100" oninput="adjustContrast(this.value)">
+      </div>
+      <div class="slider-container">
+        <label for="saturation-slider">saturation | Saturation</label>
+        <input type="range" id="saturation-slider" min="0" max="200" value="100" oninput="adjustSaturation(this.value)">
+      </div>
+      <div class="filter-preview">
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: none;" onclick="applyFilter('none')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: grayscale(100%);" onclick="applyFilter('grayscale(100%)')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: sepia(100%);" onclick="applyFilter('sepia(100%)')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: brightness(1.5);" onclick="applyFilter('brightness(1.5)')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: contrast(1.5);" onclick="applyFilter('contrast(1.5)')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: saturate(2);" onclick="applyFilter('saturate(2)')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: hue-rotate(90deg);" onclick="applyFilter('hue-rotate(90deg)')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: blur(2px);" onclick="applyFilter('blur(2px)')"></div>
+        <div class="filter-option" style="background-image: url('${imageUrl}'); filter: invert(100%);" onclick="applyFilter('invert(100%)')"></div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button class="editor-btn" onclick="saveEditedImage()"><i class="fas fa-save"></i> সেভ | Save</button>
+        <button class="editor-btn" onclick="closePhotoEditor()" style="background: var(--warning-color);"><i class="fas fa-times"></i> বন্ধ | Close</button>
+      </div>
+    `;
+    
+    // Insert editor after the image
+    imgElement.parentNode.insertBefore(editorDiv, imgElement.nextSibling);
+  }
+
+  // Apply filter to image
+  function applyFilter(filter) {
+    if (currentEditingImage) {
+      currentEditingImage.style.filter = filter;
+    }
+  }
+
+  // Adjust brightness
+  function adjustBrightness(value) {
+    if (currentEditingImage) {
+      currentEditingImage.style.filter = `brightness(${value/100})`;
+    }
+  }
+
+  // Adjust contrast
+  function adjustContrast(value) {
+    if (currentEditingImage) {
+      currentEditingImage.style.filter = `contrast(${value/100})`;
+    }
+  }
+
+  // Adjust saturation
+  function adjustSaturation(value) {
+    if (currentEditingImage) {
+      currentEditingImage.style.filter = `saturate(${value/100})`;
+    }
+  }
+
+  // Save edited image
+  function saveEditedImage() {
+    if (currentEditingImage) {
+      // Create a canvas to save the edited image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = currentEditingImage.naturalWidth;
+      canvas.height = currentEditingImage.naturalHeight;
+      
+      // Apply current filter to canvas
+      ctx.filter = currentEditingImage.style.filter || 'none';
+      ctx.drawImage(currentEditingImage, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to data URL
+      const dataUrl = canvas.toDataURL('image/jpeg');
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'edited-' + Date.now() + '.jpg';
+      link.click();
+      
+      closePhotoEditor();
+    }
+  }
+
+  // Close photo editor
+  function closePhotoEditor() {
+    if (currentEditingImage) {
+      // Remove the editor div
+      const editorDiv = currentEditingImage.nextElementSibling;
+      if (editorDiv && editorDiv.classList.contains('photo-editor')) {
+        editorDiv.remove();
+      }
+      
+      // Reset the image filter
+      currentEditingImage.style.filter = 'none';
+      currentEditingImage = null;
+    }
+  }
+
+  // Format file size
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Download file function
+  function downloadFile(url, fileName) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  // Check if text contains Bangla characters
+  function isBangla(text) {
+    return /[\u0980-\u09FF]/.test(text);
+  }
+
+  // Simple Bangla to English translation dictionary
+  const translationDictionary = {
+    // Greetings
+    "হ্যালো": "Hello",
+    "হাই": "Hi",
+    "আসসালামু আলাইকুম": "Assalamu Alaikum (Peace be upon you)",
+    "স্বাগতম": "Welcome",
+    "সুপ্রভাত": "Good morning",
+    
+    // General
+    "আপনার নাম কী?": "What is your name?",
+    "তুমি কেমন আছো?": "How are you?",
+    "তুমি কি করো?": "What do you do?",
+    "তুমি কে তৈরি করেছ?": "Who created you?",
+    "এখন কত বাজে?": "What time is it now?",
+    
+    // Education
+    "বাংলাদেশের রাজধানী কী?": "What is the capital of Bangladesh?",
+    "বাংলাদেশের স্বাধীনতা দিবস কবে?": "When is the Independence Day of Bangladesh?",
+    "বাংলাদেশের জাতীয় ফুল কি?": "What is the national flower of Bangladesh?",
+    "বাংলা বর্ণমালায় কয়টি বর্ণ আছে?": "How many letters are there in Bengali alphabet?",
+    "রবীন্দ্রনাথ ঠাকুর কে ছিলেন?": "Who was Rabindranath Tagore?",
+    
+    // Tech
+    "কম্পিউটার স্লো হলে কি করব?": "What should I do if the computer is slow?",
+    "ইন্টারনেট স্লো হলে কি করব?": "What should I do if the internet is slow?",
+    
+    // Math
+    "গণিত": "Mathematics",
+    "যোগ": "Addition",
+    "বিয়োগ": "Subtraction",
+    "গুণ": "Multiplication",
+    "ভাগ": "Division",
+    
+    // Language
+    "তুমি কি বাংলা বলতে পারো?": "Can you speak Bengali?",
+    "ইংরেজি চালু কর": "Switch to English",
+    "বাংলা চালু কর": "Switch to Bengali",
+    
+    // Files
+    "ফাইল": "File",
+    "ছবি": "Image"
+  };
+
+  // Function to translate Bangla to English
+  function translateBanglaToEnglish(text) {
+    // First check for exact matches
+    if (translationDictionary[text]) {
+      return translationDictionary[text];
+    }
+    
+    // Then try to translate word by word
+    const words = text.split(/\s+/);
+    let translated = [];
+    
+    for (const word of words) {
+      if (translationDictionary[word]) {
+        translated.push(translationDictionary[word]);
+      } else {
+        translated.push(word); // Keep original if no translation
+      }
+    }
+    
+    return translated.join(' ');
+  }
+
+  // Toggle between Quran and General modes
+  function toggleMode() {
+    const modeSwitch = document.getElementById('modeSwitch');
+    const chatHeader = document.getElementById('chat-header').firstChild;
+    
+    if (currentMode === MODES.QURAN) {
+      currentMode = MODES.GENERAL;
+      modeSwitch.innerHTML = '<i class="fas fa-exchange-alt"></i> কুরআন মোড';
+      chatHeader.textContent = 'বাংলা চ্যাটবট | English Chatbot';
+      addMessage('bot', 'সাধারণ মোড সক্রিয় করা হয়েছে। এখন আপনি সাধারণ প্রশ্ন করতে পারেন।\nGeneral mode activated. You can now ask general questions.');
+    } else {
+      currentMode = MODES.QURAN;
+      modeSwitch.innerHTML = '<i class="fas fa-exchange-alt"></i> সাধারণ মোড';
+      chatHeader.textContent = 'কুরআন চ্যাটবট - বাংলা';
+      addMessage('bot', 'কুরআন মোড সক্রিয় করা হয়েছে। এখন আপনি কুরআন সম্পর্কিত প্রশ্ন করতে পারেন।\nQuran mode activated. You can now ask about the Quran.');
+    }
+  }
+
+  // Find best matching response (updated for bilingual support)
+  function findResponse(message) {
+    const originalMessage = message;
+    message = message.toLowerCase().trim();
+    
+    // Check for mode switching commands
+    if (message.includes("কুরআন মোড") || message.includes("quran mode")) {
+      currentMode = MODES.QURAN;
+      document.getElementById('modeSwitch').textContent = 'সাধারণ মোড';
+      document.getElementById('chat-header').firstChild.textContent = 'কুরআন চ্যাটবট - বাংলা';
+      return "কুরআন মোড সক্রিয় করা হয়েছে। এখন আপনি কুরআন সম্পর্কিত প্রশ্ন করতে পারেন।\nQuran mode activated. You can now ask about the Quran.";
+    }
+    
+    if (message.includes("সাধারণ মোড") || message.includes("general mode")) {
+      currentMode = MODES.GENERAL;
+      document.getElementById('modeSwitch').textContent = 'কুরআন মোড';
+      document.getElementById('chat-header').firstChild.textContent = 'বাংলা চ্যাটবট | English Chatbot';
+      return "সাধারণ মোড সক্রিয় করা হয়েছে। এখন আপনি সাধারণ প্রশ্ন করতে পারেন।\nGeneral mode activated. You can now ask general questions.";
+    }
+    
+    // Check for math operations first (both languages)
+    if (message.includes("যোগ") || message.includes("+") || message.includes("ধন") || 
+        message.includes("add") || message.includes("plus")) {
+      return knowledgeBase.general.math["যোগ"](originalMessage);
+    }
+    if (message.includes("বিয়োগ") || message.includes("-") || message.includes("ঋণ") || 
+        message.includes("subtract") || message.includes("minus")) {
+      return knowledgeBase.general.math["বিয়োগ"](originalMessage);
+    }
+    if (message.includes("গুণ") || message.includes("*") || message.includes("×") || 
+        message.includes("multiply") || message.includes("times")) {
+      return knowledgeBase.general.math["গুণ"](originalMessage);
+    }
+    if (message.includes("ভাগ") || message.includes("/") || message.includes("÷") || 
+        message.includes("divide")) {
+      return knowledgeBase.general.math["ভাগ"](originalMessage);
+    }
+    
+    // Check in the current mode's knowledge base first
+    const currentKB = currentMode === MODES.QURAN ? knowledgeBase.quran : knowledgeBase.general;
+    
+    // Check for exact matches in all categories of current mode
+    for (const category in currentKB) {
+      for (const key in currentKB[category]) {
+        if (message === key.toLowerCase()) {
+          const response = currentKB[category][key];
+          return typeof response === 'function' ? response(originalMessage) : response;
+        }
+      }
+    }
+    
+    // Check for partial matches in current mode
+    for (const category in currentKB) {
+      for (const key in currentKB[category]) {
+        if (message.includes(key.toLowerCase()) || key.toLowerCase().includes(message)) {
+          const response = currentKB[category][key];
+          return typeof response === 'function' ? response(originalMessage) : response;
+        }
+      }
+    }
+    
+    // Check for Surah requests (even in general mode)
+    if (message.includes("সূরা") || message.includes("সুরা") || message.includes("surah")) {
+      const surahRequest = message.replace(/সূরা|সুরা|surah/g, "").trim();
+      for (const surah in knowledgeBase.quran.surahs) {
+        if (surah.includes(surahRequest) && surah !== "সূরার তালিকা" && surah !== "সূরার তথ্য") {
+          return knowledgeBase.quran.surahs[surah];
+        }
+      }
+      return "দুঃখিত, আমি এই সূরাটি খুঁজে পাইনি। আপনি 'সূরার তালিকা' লিখে সমস্ত সূরার নাম দেখতে পারেন।\nSorry, I couldn't find this surah. You can type 'সূরার তালিকা' to see all surah names.";
+    }
+    
+    // If not found in current mode, check the other mode
+    const otherModeKB = currentMode === MODES.QURAN ? knowledgeBase.general : knowledgeBase.quran;
+    for (const category in otherModeKB) {
+      for (const key in otherModeKB[category]) {
+        if (message === key.toLowerCase()) {
+          const response = otherModeKB[category][key];
+          return typeof response === 'function' ? response(originalMessage) : response;
+        }
+      }
+    }
+    
+    // Default responses for unknown queries (bilingual)
+    const defaultResponses = [
+      "আমি আপনার প্রশ্নটি পুরোপুরি বুঝতে পারিনি। আপনি অন্য ভাবে বলতে পারেন?\nI didn't quite understand your question. Can you rephrase it?",
+      "দুঃখিত, আমি এই প্রশ্নের উত্তর জানি না। আপনি অন্য কিছু জানতে চান?\nSorry, I don't know the answer to that. Would you like to ask something else?",
+      "আমার জ্ঞান এখনো সীমিত। আপনি অন্য কিছু জিজ্ঞাসা করতে পারেন।\nMy knowledge is still limited. You can ask me something else.",
+      "আপনি কি আরেকটু বিস্তারিত বলবেন?\nCould you please provide more details?"
+    ];
+    
+    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+  }
+
+  // Handle file upload
+  function handleFileUpload(files) {
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    const fileType = file.type;
+    
+    // Check content for inappropriate files
+    if (fileType.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // Check image content (basic check)
+          if (checkImageContent(img)) {
+            // Create a URL for the file
+            const fileUrl = URL.createObjectURL(file);
+            
+            // Prepare file data
+            const fileData = {
+              name: file.name,
+              size: file.size,
+              type: fileType,
+              url: fileUrl
+            };
+            
+            // Add the file message
+            addMessage("user", "", true, fileData);
+            
+            // Show typing indicator
+            showTyping();
+            
+            // Simulate thinking delay
+            setTimeout(() => {
+              hideTyping();
+              const reply = knowledgeBase.general.files["image"];
+              addMessage("bot", reply);
+            }, 1000 + Math.random() * 2000);
+          } else {
+            showWarningModal();
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+    
+    // For non-image files
+    const fileUrl = URL.createObjectURL(file);
+    const fileData = {
+      name: file.name,
+      size: file.size,
+      type: fileType,
+      url: fileUrl
+    };
+    
+    addMessage("user", "", true, fileData);
+    showTyping();
+    
+    setTimeout(() => {
+      hideTyping();
+      let reply;
+      if (fileType === 'application/pdf') {
+        reply = knowledgeBase.general.files["document"];
+      } else {
+        reply = knowledgeBase.general.files["file"];
+      }
+      addMessage("bot", reply);
+    }, 1000 + Math.random() * 2000);
+  }
+
+  // Basic image content checking
+  function checkImageContent(img) {
+    // In a real app, you would use more sophisticated checks
+    // This is just a placeholder for demonstration
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    
+    // Get image data and check for skin tones (very basic)
+    try {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      return true; // For demo, always return true
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Send message function
+  function sendMessage() {
+    const input = document.getElementById("userInput");
+    const message = input.value.trim();
+    if (message === "") return;
+
+    // Check for inappropriate content
+    if (!checkContent(message)) {
+      input.value = "";
+      return;
+    }
+
+    addMessage("user", message);
+    input.value = "";
+    
+    // Show typing indicator
+    showTyping();
+    
+    // Simulate thinking delay
+    setTimeout(() => {
+      hideTyping();
+      const reply = findResponse(message);
+      addMessage("bot", reply);
+    }, 1000 + Math.random() * 2000); // Random delay between 1-3 seconds
+  }
+
+  // Initialize the application
+  function initApp() {
+    // Initialize user system
+    initUserSystem();
+    
+    // Initialize voice recognition
+    initVoiceRecognition();
+    
+    // Event listeners
+    document.getElementById("userInput").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+    
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.getElementById("voiceBtn").addEventListener("click", startVoiceRecognition);
+    document.getElementById("modeSwitch").addEventListener("click", toggleMode);
+    document.getElementById("settingsBtn").addEventListener("click", openModal);
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    
+    // Modal tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+    
+    // Show forgot password
+    document.getElementById('showForgot').addEventListener('click', () => switchTab('forgot'));
+    
+    // Show login
+    document.getElementById('showLogin').addEventListener('click', () => switchTab('login'));
+    
+    // Form submissions
+    document.getElementById('signupBtn').addEventListener('click', function() {
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      const username = document.getElementById('signupUsername').value;
+      const password = document.getElementById('signupPassword').value;
+      const confirm = document.getElementById('signupConfirm').value;
+      
+      if (!name || !email || !username || !password) {
+        showNotification('সকল তথ্য প্রদান করুন', 'error');
+        return;
+      }
+      
+      if (password !== confirm) {
+        showNotification('পাসওয়ার্ড মিলছে না', 'error');
+        return;
+      }
+      
+      registerUser(name, email, username, password);
+      closeModal();
+    });
+    
+    document.getElementById('loginBtn').addEventListener('click', function() {
+      const identifier = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      if (!identifier || !password) {
+        showNotification('ইমেইল/ব্যবহারকারী নাম এবং পাসওয়ার্ড প্রয়োজন', 'error');
+        return;
+      }
+      
+      if (loginUser(identifier, password)) {
+        closeModal();
+      }
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', function() {
+      const email = document.getElementById('forgotEmail').value;
+      
+      if (!email) {
+        showNotification('ইমেইল প্রদান করুন', 'error');
+        return;
+      }
+      
+      resetPassword(email);
+    });
+    
+    // Initial greeting with date
+    setTimeout(() => {
+      addMessage("bot", `আজকের তারিখ:\nToday's date:\n${getCurrentDate()}`);
+      addMessage("bot", `আপনি কুরআন সম্পর্কিত প্রশ্ন করতে পারেন অথবা সাধারণ প্রশ্ন করতে পারেন। মোড পরিবর্তন করতে উপরের বাটনটি ব্যবহার করুন।\nYou can ask about the Quran or general questions. Use the button above to switch modes.`);
+    }, 1500);
+  }
+
+  // Start the application when page loads
+  window.onload = initApp;
+</script>
+
+</body>
+</html>
